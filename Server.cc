@@ -1,6 +1,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <thread>
 
 #include "Server.h"
 
@@ -40,16 +41,15 @@ GreeterServer::~GreeterServer()
 
 void GreeterServer::HandleGrpc()
 {
+  std::thread writeThread( &GreeterServer::Write, this );
+
   void* pTag = nullptr;
   bool ok = false;
-  size_t index = 0;
   while( m_pCq->Next( &pTag, &ok ) )
   {
     if( pTag && ok )
     {
-      std::string message = "hello " + std::to_string( ++index );
-      static_cast<CallData*>( pTag )->Proceed( message );
-      sleep( 5 );
+      m_Queue.push( static_cast<CallData*>( pTag ) );
     }
     else
     {
@@ -64,6 +64,31 @@ void GreeterServer::HandleGrpc()
   }
 
   std::cout << "Server finish!" << std::endl;
+}
+
+void GreeterServer::Write()
+{
+  size_t index = 0;
+  while( true )
+  {
+    if( m_Queue.size() > 0 )
+    {
+      
+      CallData* pTag = m_Queue.front();
+      m_Queue.pop();
+      if( pTag )
+      {
+        std::string message = "hello " + std::to_string( ++index );
+        pTag->Proceed( message );
+      }
+
+      sleep( 5 );
+    }
+    else
+    {
+      sleep( 1 );
+    }
+  }
 }
 
 GreeterServer::CallData::CallData( std::unique_ptr<StreamService::AsyncService>& pService,

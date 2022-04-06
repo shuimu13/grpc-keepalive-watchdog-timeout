@@ -6,6 +6,8 @@
 #include "streamer.grpc.pb.h"
 #include "streamer.pb.h"
 
+#include <queue>
+
 using namespace grpc;
 using namespace streamer;
 
@@ -18,10 +20,6 @@ public:
   void HandleGrpc();
   
 private:
-   std::unique_ptr<ServerCompletionQueue> m_pCq;
-   std::unique_ptr<StreamService::AsyncService> m_pService;
-   std::unique_ptr<Server> m_pServer;
-
    // Class encompasing the state and logic needed to serve a request.
    class CallData
    {
@@ -53,4 +51,11 @@ private:
       ServerAsyncWriter<StreamResponse> m_Responder;
       CallStatus m_Status;
    };
+
+   std::unique_ptr<ServerCompletionQueue> m_pCq;
+   std::unique_ptr<StreamService::AsyncService> m_pService;
+   std::unique_ptr<Server> m_pServer;
+   std::queue<CallData*> m_Queue;
+
+   void Write();
 };

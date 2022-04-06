@@ -61,13 +61,8 @@ class GreeterClient {
 
 int main()
 {
-  ChannelArguments args;
-  args.SetInt( GRPC_ARG_KEEPALIVE_TIME_MS, 60000 );
-  args.SetInt( GRPC_ARG_KEEPALIVE_PERMIT_WITHOUT_CALLS, 1 );
-  args.SetInt( GRPC_ARG_HTTP2_MAX_PINGS_WITHOUT_DATA, 0 );
-  args.SetInt( GRPC_ARG_HTTP2_MIN_SENT_PING_INTERVAL_WITHOUT_DATA_MS, 10000 );
   std::string address = "localhost:50055";
-  GreeterClient greeter( CreateCustomChannel( address, grpc::InsecureChannelCredentials(), args ) );
+  GreeterClient greeter( CreateChannel( address, grpc::InsecureChannelCredentials() ) );
 
   greeter.StreamMessages();
 
